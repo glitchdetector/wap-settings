@@ -1,12 +1,12 @@
 # Webadmin Settings Menu
 
-https://puu.sh/ECSC4.png
+![](https://puu.sh/ECSC4.png)
 
 A flexible settings panel for controlling console variables (convars).
 
 Allows resources to define their own list of entries for the panel.
 
-https://puu.sh/ECSwG.png
+![](https://puu.sh/ECSwG.png)
 
 ## Features
 
@@ -32,56 +32,56 @@ https://forum.fivem.net/t/release-api-webadmin-lua-plugin-factory/865295
 ### Entry definitions
 
 #### Heading / Category
-https://puu.sh/ECSzI.png
+![](https://puu.sh/ECSzI.png)
 ```
 Title[, Subtitle]
 ```
 Appears as a header / category separator
 
 #### Boolean
-https://puu.sh/ECSzx.png
+![](https://puu.sh/ECSzx.png)
 ```
 Title, Convar, "CV_BOOL", Default[, Label]
 ```
 True / False input in the form of a checkbox
 
 #### Number Input (Manual)
-https://puu.sh/ECSzO.png
+![](https://puu.sh/ECSzO.png)
 ```
 Title, Convar, "CV_INT", Default[, Min, Max]
 ```
 Manual number input with optional minimum and maximum
 
 #### Number Input (Slider)
-https://puu.sh/ECSzS.png
+![](https://puu.sh/ECSzS.png)
 ```
 Title, Convar, "CV_SLIDER", Default, Min, Max
 ```
 Slider number input
 
 #### Number Input (Slider & Manual)
-https://puu.sh/ECSzX.png
+![](https://puu.sh/ECSzX.png)
 ```
 Title, Convar, "CV_COMBI", Default, Min, Max
 ```
 Number input with slider and manual input
 
 #### Text Input
-https://puu.sh/ECSA2.png
+![](https://puu.sh/ECSA2.png)
 ```
 Title, Convar, "CV_STRING", Default
 ```
 Normal text input
 
 #### Text Input (Hidden)
-https://puu.sh/ECSBf.png
+![](https://puu.sh/ECSBf.png)
 ```
 Title, Convar, "CV_PASSWORD", Default
 ```
 Masked text input
 
 #### Dropdown Selection
-https://puu.sh/ECSAF.png
+![](https://puu.sh/ECSAF.png)
 ```
 Title, Convar, "CV_MULTI", Items[{name, value}]
 ```
