@@ -7,6 +7,7 @@ local PAGE_ICON = "wrench"
 local PAGE_BADGE = false
 local PAGE_BADGE_TYPE = "primary"
 
+local CV_REPLICATE = 0xFF
 local CV_BOOL, CV_INT, CV_STRING, CV_SLIDER, CV_MULTI, CV_COMBI, CV_PASSWORD = 1, 2, 3, 4, 5, 6, 7
 -- List of convars
 local CONVARS = {
@@ -30,8 +31,8 @@ local CONVARS = {
     }},
     {"Map Name",            "mapname",              CV_STRING,  "San Andreas"},
     {"Game Mode",           "gametype",             CV_STRING,  "Freeroam"},
-    {"Locale",              "locale",               CV_STRING,  "en-us"},
-    {"Tags",                "tags",                 CV_STRING,  "freeroam,fivem"},
+    {"Locale",              "locale",               CV_STRING,  "en-US"},
+    {"Tags",                "tags",                 CV_STRING,  "default"},
 
     {"Scripthook"},
     {"Enable Scripthook",   "sv_scriptHookAllowed", CV_BOOL,    false,  "Allows players to run custom game modifications"},
@@ -90,6 +91,22 @@ local function ParseStructure(struct)
             table.insert(output, {name, convar_desc, CV_COMBI, default_items, label_min, max})
         elseif type == "CV_PASSWORD" then
             table.insert(output, {name, convar_desc, CV_PASSWORD, default_items})
+
+        -- Replicated
+        elseif type == "CV_BOOL_R" then
+            table.insert(output, {name, convar_desc, CV_BOOL + CV_REPLICATE, default_items, label_min})
+        elseif type == "CV_INT_R" then
+            table.insert(output, {name, convar_desc, CV_INT + CV_REPLICATE, default_items, label_min, max})
+        elseif type == "CV_STRING_R" then
+            table.insert(output, {name, convar_desc, CV_STRING + CV_REPLICATE, default_items})
+        elseif type == "CV_SLIDER_R" then
+            table.insert(output, {name, convar_desc, CV_SLIDER + CV_REPLICATE, default_items, label_min, max})
+        elseif type == "CV_MULTI_R" then
+            table.insert(output, {name, convar_desc, CV_MULTI + CV_REPLICATE, default_items})
+        elseif type == "CV_COMBI_R" then
+            table.insert(output, {name, convar_desc, CV_COMBI + CV_REPLICATE, default_items, label_min, max})
+        elseif type == "CV_PASSWORD_R" then
+            table.insert(output, {name, convar_desc, CV_PASSWORD + CV_REPLICATE, default_items})
         end
     end
     return output
@@ -197,12 +214,12 @@ function CreatePage(FAQ, data, add)
                 return false, FAQ.Nodes({"You are not authorized to change the value of ", FAQ.Node("strong", {}, data.convar), "."})
             end
             local default = convar[4]
-            if convar[3] and convar[3] == CV_MULTI then
+            if convar[3] and (convar[3] % 0xFF) == CV_MULTI then
                 default = convar[4][1][2]
             end
             local oldvar = GetConvar(data.convar, tostring(default))
             oldvar = (oldvar == "" and "[nothing]" or oldvar)
-            if convar[3] == CV_BOOL then
+            if convar[3] and (convar[3] % 0xFF) == CV_BOOL then
                 if data[data.convar] then data[data.convar] = "true" end
                 if not data[data.convar] then data[data.convar] = "false" end
             end
@@ -210,7 +227,13 @@ function CreatePage(FAQ, data, add)
             if tostring(oldvar) == tostring(data[data.convar]) then
                 add(FAQ.Alert("warning", FAQ.Nodes({"The value of ", FAQ.Node("strong", {}, convar[2]), " is already set to ", FAQ.Node("code", {}, oldvar)})))
             else
-                SetConvar(data.convar, data[data.convar])
+                if convar[3] and convar[3] > 0xFF then
+                    print("set convar", data.convar, data[data.convar], "(replicated)")
+                    SetConvarReplicated(data.convar, data[data.convar])
+                else
+                    print("set convar", data.convar, data[data.convar])
+                    SetConvar(data.convar, data[data.convar])
+                end
                 add(FAQ.Alert("info", FAQ.Nodes({"Updated ", FAQ.Node("strong", {}, convar[2]), " from ", FAQ.Node("code", {}, oldvar), " to ", FAQ.Node("code", {}, newvar)})))
             end
         end
@@ -250,7 +273,7 @@ function CreatePage(FAQ, data, add)
             end
             add(header)
             add(FAQ.Node("hr", {}, ""))
-        elseif cvtype == CV_BOOL then
+        elseif (cvtype % 0xFF) == CV_BOOL then
             -- Toggle switch
             local title, name, default, label = convar[1], convar[2], tostring(convar[4]), convar[5]
             local cvval = tostring(GetConvar(name, default))
@@ -265,7 +288,7 @@ function CreatePage(FAQ, data, add)
                 "Update ", FAQ.Icon("sync-alt")
             }, {type = "submit", disabled = (not exports['webadmin']:isInRole("command." .. name) and "disabled" or nil)})))
             add(form)
-        elseif cvtype == CV_INT then
+        elseif (cvtype % 0xFF) == CV_INT then
             -- Number input
             local title, name, default, min, max = convar[1], convar[2], convar[4], convar[5], convar[6]
             local cvval = tostring(GetConvar(name, default))
@@ -282,7 +305,7 @@ function CreatePage(FAQ, data, add)
                 "Update ", FAQ.Icon("sync-alt")
             }, {type = "submit", disabled = (not exports['webadmin']:isInRole("command." .. name) and "disabled" or nil)})))
             add(form)
-        elseif cvtype == CV_COMBI then
+        elseif (cvtype % 0xFF) == CV_COMBI then
             -- Combined number slider input
             local title, name, default, min, max = convar[1], convar[2], convar[4], convar[5], convar[6]
             local cvval = tostring(GetConvar(name, default))
@@ -332,7 +355,7 @@ function CreatePage(FAQ, data, add)
                 })
             })
             add(form)
-        elseif cvtype == CV_STRING then
+        elseif (cvtype % 0xFF) == CV_STRING then
             -- Text input
             local title, name, default = convar[1], convar[2], convar[4]
             local cvval = tostring(GetConvar(name, default))
@@ -347,7 +370,7 @@ function CreatePage(FAQ, data, add)
                 "Update ", FAQ.Icon("sync-alt")
             }, {type = "submit", disabled = (not exports['webadmin']:isInRole("command." .. name) and "disabled" or nil)})))
             add(form)
-        elseif cvtype == CV_PASSWORD then
+        elseif (cvtype % 0xFF) == CV_PASSWORD then
             -- Text input
             local title, name, default = convar[1], convar[2], convar[4]
             local cvval = tostring(GetConvar(name, default))
@@ -362,7 +385,7 @@ function CreatePage(FAQ, data, add)
                 "Update ", FAQ.Icon("sync-alt")
             }, {type = "submit", disabled = (not exports['webadmin']:isInRole("command." .. name) and "disabled" or nil)})))
             add(form)
-        elseif cvtype == CV_SLIDER then
+        elseif (cvtype % 0xFF) == CV_SLIDER then
             -- Slider
             local title, name, default, min, max = convar[1], convar[2], convar[4], convar[5], convar[6]
             local cvval = GetConvarInt(name, default)
@@ -393,7 +416,7 @@ function CreatePage(FAQ, data, add)
                 }, {type = "submit", disabled = (not exports['webadmin']:isInRole("command." .. name) and "disabled" or nil)}),
             }))
             add(form)
-        elseif cvtype == CV_MULTI then
+        elseif (cvtype % 0xFF) == CV_MULTI then
             -- Dropdown
             local title, name, list = convar[1], convar[2], convar[4]
             local dropdown = {}
